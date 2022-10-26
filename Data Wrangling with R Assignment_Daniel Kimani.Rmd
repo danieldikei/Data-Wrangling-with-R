@@ -1,0 +1,130 @@
+---
+title: "Data Wrangling and Analysis in R"
+output:
+  html_document:
+    df_print: paged
+---
+  
+## 1. Installing packages
+  
+```{r}
+install.packages("tidyverse")
+```
+
+#### Load tidyverse for use in our notebook
+```{r}
+library(tidyverse)
+```
+## 2. Data Importation
+```{r}
+mtn_df <- read_csv("https://bit.ly/2ZlpzjF")
+mtn_df
+```
+## 3. Data Understanding
+```{r}
+#preview the first 6 records of the mtn dataset
+head(mtn_df)
+```
+```{r}
+#preview the last 6 records of the mtn dataset
+tail(mtn_df)
+```
+
+```{r}
+library(dplyr)
+```
+```{r}
+#display the variable names, datatypes and first few records of the mtn dataset
+glimpse(mtn_df)
+```
+```{r}
+#display more information about the datatypes
+str(mtn_df)
+```
+```{r}
+#check the size of the dataset
+dim(mtn_df)
+```
+## 4. Finding and dealing with Duplicates 
+```{r}
+mtn_df[duplicated(mtn_df),]
+```
+```{r}
+#We remove duplicates based on customerId column
+mtn_df[!duplicated(mtn_df$customerID), ]
+
+```
+## 5. Missing data
+```{r}
+#Lets try to identify missing data and pass the dataframe
+is.na(mtn_df)
+```
+```{r}
+#we find the total missing values in each column
+colSums(is.na(mtn_df))
+```
+###We have severalmissing data in all columns except the customerID
+### We drop all rows containing missing values.
+```{r}
+na.omit(mtn_df)
+```
+```{r}
+#we replace the missing values in monthly charge and totalcharge with the mean
+mtn_df$MonthlyCharges[is.na(mtn_df$MonthlyCharges)] <- mean(mtn_df$MonthlyCharges, na.rm = TRUE)
+mtn_df$TotalCharges[is.na(mtn_df$TotalCharges)] <- mean(mtn_df$TotalCharges, na.rm = TRUE)
+mtn_df
+```
+## 6. Find and Dealing with Outliers
+```{r}
+head(mtn_df)
+```
+
+```{r}
+# Calculating lower and upper percentiles per MonthlyCharges
+lower_bound <- quantile(mtn_df$MonthlyCharges, 0.025)
+upper_bound <- quantile(mtn_df$MonthlyCharges, 0.975)
+lower_bound
+upper_bound
+```
+
+###Lower bound for Monthly charges is 19.4 and upper bound is 111.05 
+```{r}
+# Calculating lower and upper percentiles per TotalCharges
+lower_bound <- quantile(mtn_df$TotalCharges, 0.025)
+upper_bound <- quantile(mtn_df$TotalCharges, 0.975)
+lower_bound
+upper_bound
+```
+###Lower bound for Total charges is 24.9225 and upper bound is 7558.954  
+
+## 7. Filtering and sorting
+```{r}
+head(mtn_df)
+```
+```{r}
+#view customers with the highest tenure and gender
+mtn_df %>% 
+  select(GENDER,SeniorCitizen, tenure) %>%
+  arrange(desc(tenure))
+```
+###From the analysis above the people with the highesttenure above 100 were majorly male and were not senior citizens. The female who feature in that caegory are both senior citizens
+```{r}
+mtn_df %>%
+  group_by(GENDER) %>%
+  summarize(TotalCharges = mean(TotalCharges))
+```
+###Male Gender contributed to highest charges from the analysis above
+```{r}
+selected_df <- filter(mtn_df, Churn == "Yes")
+select(selected_df, PARTNER, Churn)
+```
+### We notice that both partners and mtn customers were churning
+```{r}
+selected_df %>%
+  arrange(desc(tenure))
+```
+```{r}
+selected_df %>%
+  group_by(GENDER) %>%
+  summarize(count = sum(customerID))
+```
